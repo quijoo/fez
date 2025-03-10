@@ -1,0 +1,269 @@
+[gd_scene load_steps=25 format=3 uid="uid://bi1ruv5c6mhjn"]
+
+[ext_resource type="Script" uid="uid://dscb6l7gvxvp4" path="res://scripts/fez_controller.gd" id="2_jyhfs"]
+[ext_resource type="MeshLibrary" uid="uid://dqnexy4fervp" path="res://meshes/cube_world_library.tres" id="2_tefeu"]
+[ext_resource type="Texture2D" uid="uid://coyut461emefx" path="res://sprites/IDLE.png" id="4_jyhfs"]
+[ext_resource type="Texture2D" uid="uid://cfedd3agsmx7m" path="res://sprites/JUMP.png" id="4_tbgi4"]
+[ext_resource type="Texture2D" uid="uid://btjsryqehjhck" path="res://sprites/RUN.png" id="5_tefeu"]
+
+[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_tbgi4"]
+energy_multiplier = 3.0
+use_debanding = false
+
+[sub_resource type="Sky" id="Sky_tefeu"]
+sky_material = SubResource("PhysicalSkyMaterial_tbgi4")
+
+[sub_resource type="Environment" id="Environment_o6xl0"]
+background_mode = 1
+background_color = Color(0.27269, 0.527739, 0.623847, 1)
+sky = SubResource("Sky_tefeu")
+ambient_light_source = 3
+ambient_light_color = Color(0.537255, 0.364706, 0.278431, 1)
+ambient_light_sky_contribution = 0.85
+reflected_light_source = 2
+tonemap_mode = 3
+tonemap_white = 6.0
+ssil_enabled = true
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_tipki"]
+
+[sub_resource type="Shader" id="Shader_sugp2"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.4.stable's StandardMaterial3D.
+
+shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx, depth_test_disabled;
+
+uniform vec4 albedo : source_color;
+uniform sampler2D texture_albedo : source_color, filter_linear_mipmap, repeat_enable;
+uniform ivec2 albedo_texture_size;
+uniform float point_size : hint_range(0.1, 128.0, 0.1);
+
+uniform float roughness : hint_range(0.0, 1.0);
+uniform sampler2D texture_metallic : hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform vec4 metallic_texture_channel;
+uniform sampler2D texture_roughness : hint_roughness_r, filter_linear_mipmap, repeat_enable;
+
+uniform float specular : hint_range(0.0, 1.0, 0.01);
+uniform float metallic : hint_range(0.0, 1.0, 0.01);
+
+uniform vec3 uv1_scale;
+uniform vec3 uv1_offset;
+uniform vec3 uv2_scale;
+uniform vec3 uv2_offset;
+
+uniform sampler2D depth_texture: hint_depth_texture;
+
+void vertex() {
+	UV = UV * uv1_scale.xy + uv1_offset.xy;
+
+	// Billboard Mode: Enabled
+	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(
+			MAIN_CAM_INV_VIEW_MATRIX[0],
+			MAIN_CAM_INV_VIEW_MATRIX[1],
+			MAIN_CAM_INV_VIEW_MATRIX[2],
+			MODEL_MATRIX[3]);
+	MODELVIEW_NORMAL_MATRIX = mat3(MODELVIEW_MATRIX);
+}
+
+void fragment() {
+	vec2 base_uv = UV;
+
+	vec4 albedo_tex = texture(texture_albedo, base_uv);
+	ALBEDO = albedo.rgb * albedo_tex.rgb;
+
+	float metallic_tex = dot(texture(texture_metallic, base_uv), metallic_texture_channel);
+	METALLIC = metallic_tex * metallic;
+	SPECULAR = specular;
+
+	vec4 roughness_texture_channel = vec4(1.0, 0.0, 0.0, 0.0);
+	float roughness_tex = dot(texture(texture_roughness, base_uv), roughness_texture_channel);
+	ROUGHNESS = roughness_tex * roughness;
+	ALPHA *= albedo.a * albedo_tex.a;
+	
+	// x-ray effect
+	float depth = texture(depth_texture, SCREEN_UV).x;
+	vec3 ndc = vec3(SCREEN_UV * 2.0 - 1.0, depth);
+	vec4 view = INV_PROJECTION_MATRIX * vec4(ndc, 1.0);
+	view.xyz /= view.w;
+	float linear_depth = -view.z;
+	if (-VERTEX.z > linear_depth)
+	{
+		ALBEDO = vec3(0.3, 0.3, 0.3);
+	}
+}
+"
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_sugp2"]
+viewport_path = NodePath("CharacterMesh/FEZController")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jyhfs"]
+resource_local_to_scene = true
+render_priority = 0
+shader = SubResource("Shader_sugp2")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/texture_albedo = SubResource("ViewportTexture_sugp2")
+shader_parameter/albedo_texture_size = Vector2i(0, 0)
+shader_parameter/point_size = 1.0
+shader_parameter/roughness = 1.0
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+
+[sub_resource type="QuadMesh" id="QuadMesh_sugp2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jyhfs"]
+atlas = ExtResource("4_jyhfs")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tbgi4"]
+atlas = ExtResource("4_jyhfs")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tefeu"]
+atlas = ExtResource("4_jyhfs")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o6xl0"]
+atlas = ExtResource("4_jyhfs")
+region = Rect2(48, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tipki"]
+atlas = ExtResource("4_jyhfs")
+region = Rect2(64, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_85g3d"]
+atlas = ExtResource("4_tbgi4")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_choun"]
+atlas = ExtResource("5_tefeu")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ya4ey"]
+atlas = ExtResource("5_tefeu")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eb6dy"]
+atlas = ExtResource("5_tefeu")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_85g3d"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jyhfs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tbgi4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tefeu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o6xl0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tipki")
+}],
+"loop": true,
+"name": &"IDLE",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_85g3d")
+}],
+"loop": true,
+"name": &"JUMP",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_choun")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ya4ey")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eb6dy")
+}],
+"loop": true,
+"name": &"RUN",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_h2yge"]
+size = Vector2(50, 50)
+
+[node name="Node3D" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_o6xl0")
+camera_attributes = SubResource("CameraAttributesPractical_tipki")
+
+[node name="HelpCamera" type="Camera3D" parent="."]
+transform = Transform3D(0.858414, -0.158913, 0.487721, 1.49012e-08, 0.950803, 0.309797, -0.512957, -0.265934, 0.816183, 7.57861, 17.1921, 15.164)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.221821, 0.975087, 0, -0.975087, 0.221821, 1.45439, 15.2223, 24.4563)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.45439, 15.2223, 24.4563)
+visible = false
+projection = 1
+size = 20.0
+
+[node name="Buildings" type="GridMap" parent="."]
+mesh_library = ExtResource("2_tefeu")
+cell_size = Vector3(1, 1, 1)
+collision_layer = 0
+collision_mask = 0
+data = {
+"cells": PackedInt32Array(524286, 65534, 1441802, 524287, 65534, 1441802, 458752, 65534, 1441802, 458753, 65534, 1441802, 524286, 65535, 1441802, 524287, 65535, 1441802, 458752, 65535, 1441802, 458753, 65535, 1441802, 524286, 0, 1441802, 524287, 0, 1441802, 458752, 0, 1441802, 458753, 0, 1441802, 524286, 1, 1441802, 524287, 1, 1441802, 458752, 1, 1441802, 458753, 1, 1441802, 589822, 65534, 1441802, 589823, 65534, 1441802, 524288, 65534, 1441802, 524289, 65534, 1441802, 524289, 65535, 1441802, 589822, 65535, 1441802, 589823, 65535, 1441802, 524288, 65535, 1441802, 589822, 0, 1441802, 589823, 0, 1441802, 524288, 0, 1441802, 524289, 0, 1441802, 589822, 1, 1441802, 589823, 1, 1441802, 524288, 1, 1441802, 524289, 1, 1441802, 655358, 65534, 1441802, 655359, 65534, 1441802, 589824, 65534, 1441802, 589825, 65534, 1441802, 655358, 65535, 1441802, 655359, 65535, 1441802, 589824, 65535, 1441802, 589825, 65535, 1441802, 655358, 0, 1441802, 655359, 0, 1441802, 589824, 0, 1441802, 589825, 0, 1441802, 655358, 1, 1441802, 655359, 1, 1441802, 589824, 1, 1441802, 589825, 1, 1441802, 720894, 65534, 1441802, 720895, 65534, 1441802, 655360, 65534, 1441802, 655361, 65534, 1441802, 720894, 65535, 1441802, 720895, 65535, 1441802, 655360, 65535, 1441802, 655361, 65535, 1441802, 720894, 0, 1441802, 720895, 0, 1441802, 655360, 0, 1441802, 655361, 0, 1441802, 720894, 1, 1441802, 720895, 1, 1441802, 655360, 1, 1441802, 655361, 1, 1441802, 786430, 65534, 1441802, 786431, 65534, 1441802, 720896, 65534, 1441802, 720897, 65534, 1441802, 786430, 65535, 1441802, 786431, 65535, 1441802, 720896, 65535, 1441802, 720897, 65535, 1441802, 786430, 0, 1441802, 786431, 0, 1441802, 720896, 0, 1441802, 720897, 0, 1441802, 786430, 1, 1441802, 786431, 1, 1441802, 720896, 1, 1441802, 720897, 1, 1441802, 458747, 65535, 1376280, 458747, 65534, 1376280, 393216, 0, 720920, 393216, 65535, 917528, 393216, 65534, 917528, 393218, 65530, 851992, 393217, 65530, 851992, 393216, 65530, 851992, 458751, 65530, 851992, 458750, 65530, 851992, 458749, 65530, 851992, 458748, 65530, 851992, 458747, 65530, 851992, 458747, 65531, 851992, 458747, 65532, 851992, 458747, 65533, 851992, 458747, 0, 786456, 458747, 1, 786456, 458747, 2, 786456, 458747, 3, 786456, 458747, 4, 786456, 458747, 5, 786456, 458748, 5, 196632, 458749, 5, 196632, 458750, 5, 196632, 458751, 5, 196632, 393216, 5, 196632, 393217, 5, 196632, 393218, 5, 196632, 393219, 5, 196632, 393220, 5, 196632, 393220, 4, 1179672, 393220, 3, 1179672, 393220, 2, 1179672, 393220, 0, 1179672, 393220, 65535, 1179672, 393220, 1, 1179672, 393220, 65534, 1179672, 393220, 65533, 1179672, 393220, 65532, 1179672, 393220, 65531, 1179672, 393220, 65530, 1179672, 393219, 65530, 1179672, 524283, 65530, 983064, 524283, 65531, 983064, 524283, 65532, 983064, 524283, 65533, 983064, 524283, 65534, 983064, 524283, 65535, 983064, 524283, 0, 983064, 524283, 1, 983064, 524283, 2, 983064, 524283, 3, 983064, 524283, 4, 917528, 524283, 5, 917528, 524282, 65534, 917528, 524282, 65535, 917528, 524282, 1, 917528, 524282, 3, 917528, 524282, 4, 917528, 524284, 5, 589848, 524285, 5, 589848, 524286, 5, 589848, 524287, 5, 589848, 458752, 5, 589848, 458753, 5, 589848, 458754, 5, 262168, 458755, 5, 262168, 458756, 5, 262168, 524285, 6, 262168, 524286, 6, 262168, 458752, 6, 262168, 458753, 6, 262168, 458756, 4, 458776, 458756, 3, 458776, 458756, 2, 458776, 458756, 1, 458776, 458756, 0, 458776, 458756, 65535, 458776, 458756, 65534, 458776, 458756, 65533, 458776, 458757, 65533, 458776, 458757, 65532, 458776, 458756, 65532, 458776, 458756, 65531, 458776, 458757, 0, 393240, 458757, 1, 393240, 458757, 3, 393240, 458756, 65530, 65560, 458755, 65530, 65560, 458754, 65530, 65560, 458753, 65530, 65560, 458752, 65530, 65560, 524286, 65530, 65560, 524285, 65530, 65560, 524284, 65530, 65560, 524287, 65530, 24, 458752, 65529, 24, 458754, 65529, 24, 524285, 65529, 24, 851966, 0, 851978, 851967, 0, 851978, 786432, 0, 851978, 786433, 0, 851978, 786433, 65535, 851978, 786433, 65534, 851978, 851966, 1, 851978, 851967, 1, 851978, 786432, 1, 851978, 786433, 1, 851978, 851969, 65534, 1245194, 851969, 65535, 1245194, 851969, 1, 1245194, 917502, 0, 1245194, 917503, 0, 1245194, 851968, 0, 1245194, 851969, 0, 1245194, 851968, 1, 1245194, 917503, 1, 1245194, 917502, 1, 1245194, 851968, 65535, 458762, 917503, 65535, 458762, 917502, 65535, 458762, 851968, 65534, 458762, 917503, 65534, 458762, 917502, 65534, 458762, 917505, 65534, 655370, 917504, 65534, 655370, 983039, 65534, 655370, 983038, 65534, 655370, 983038, 1, 655370, 983038, 0, 655370, 983038, 65535, 655370, 983039, 1, 655370, 983039, 0, 655370, 983039, 65535, 655370, 917504, 1, 655370, 917504, 0, 655370, 917504, 65535, 655370, 917505, 1, 655370, 917505, 0, 655370, 917505, 65535, 655370, 983041, 0, 589834, 983041, 1, 589834, 983040, 1, 589834, 1048575, 1, 589834, 1048574, 1, 589834, 1048574, 0, 589834, 1048574, 65535, 589834, 1048574, 65534, 589834, 1048575, 65534, 589834, 1048575, 65535, 589834, 1048575, 0, 589834, 983040, 0, 589834, 1048577, 1, 327690, 1048577, 0, 327690, 1048577, 65535, 327690, 1048576, 65535, 327690, 1114111, 65535, 327690, 1114111, 65534, 327690, 1114110, 65534, 327690, 1114110, 65535, 327690, 1114110, 0, 327690, 1114110, 1, 327690, 1114111, 0, 327690, 1114111, 1, 327690, 1048576, 0, 327690, 1048576, 1, 327690, 1048576, 65534, 262154, 1048577, 65534, 262154, 1114113, 1, 393226, 1114113, 0, 393226, 1114113, 65535, 393226, 1114113, 65534, 393226, 1114112, 65534, 393226, 1179647, 65534, 393226, 1179646, 65534, 393226, 1179646, 65535, 393226, 1179646, 0, 393226, 1179646, 1, 393226, 1179647, 1, 393226, 1114112, 1, 393226, 1114112, 0, 393226, 1114112, 65535, 393226, 1179647, 65535, 393226, 1179647, 0, 393226, 1179636, 8, 1179660, 1179636, 9, 1179660, 1179636, 10, 1179660, 1179637, 10, 1114124, 1179638, 10, 1114124, 1179637, 9, 1114124, 1179638, 9, 1114124, 1179637, 8, 1114124, 1179638, 8, 1114124, 1114101, 9, 327692, 589829, 6, 1245205, 655365, 6, 1245205, 720901, 6, 1310721, 786437, 6, 1245205, 851967, 65534, 10, 851967, 65535, 10, 851966, 65535, 10, 851966, 65534, 10, 786432, 65535, 786442, 786432, 65534, 786442, 983040, 65535, 1179658, 983041, 65535, 1179658, 983041, 65534, 1179658, 983040, 65534, 1179658, 1179648, 65534, 1441803, 1179649, 65535, 1441803, 1179649, 65534, 1441803, 1179648, 65535, 1441803, 1179648, 0, 1441803, 1245183, 65535, 1441803, 1245183, 65534, 1441803, 1245182, 65534, 1441803, 1245182, 65535, 1441803, 1245182, 0, 1441803, 1245183, 0, 1441803, 1245183, 1, 1441803, 1245182, 1, 1441803, 1245185, 65534, 1441815, 1245184, 65534, 1441815, 1310719, 65534, 1441815, 1310718, 65534, 1441815, 1245185, 65535, 1441815, 1245184, 65535, 1441815, 1310719, 65535, 1441815, 1310718, 65535, 1441815, 1245184, 0, 1441815, 1310719, 0, 1441815, 1310718, 0, 1441815, 1310719, 1, 1441815, 1310718, 1, 1441815, 1376254, 1, 1441815, 1376254, 0, 1441815, 1376254, 65535, 1441815, 1376255, 65535, 1441815, 1310720, 65535, 1441815, 1310720, 65534, 1441815, 1376255, 65534, 1441815, 1376255, 0, 393239, 1310720, 0, 393239, 1376255, 1, 393239, 1310721, 65534, 393239, 1310721, 65535, 393239, 1376254, 65534, 393239)
+}
+metadata/_editor_floor_ = Vector3(0, 13, 0)
+
+[node name="Platform" type="GridMap" parent="."]
+mesh_library = ExtResource("2_tefeu")
+cell_size = Vector3(1, 1, 1)
+collision_mask = 0
+data = {
+"cells": PackedInt32Array(589818, 6, 1441817, 589819, 6, 1441817, 589820, 6, 1441817, 589821, 6, 1441817, 589822, 6, 1441817, 589823, 6, 1441817, 524288, 6, 1441817, 524289, 6, 1441817, 524290, 6, 1441817, 524291, 6, 1441817, 524292, 6, 1441817, 524293, 6, 1441817, 524293, 5, 1441817, 524293, 4, 1441817, 524293, 3, 1441817, 524293, 2, 1441817, 524293, 1, 1441817, 524293, 0, 1441817, 524293, 65535, 1441817, 524293, 65534, 1441817, 524293, 65533, 1441817, 524293, 65532, 1441817, 524293, 65531, 1441817, 524293, 65530, 1441817, 524293, 65529, 1441817, 589819, 65529, 1441817, 589820, 65529, 1441817, 589821, 65529, 1441817, 589822, 65529, 1441817, 589823, 65529, 1441817, 524288, 65529, 1441817, 524289, 65529, 1441817, 524290, 65529, 1441817, 524291, 65529, 1441817, 524292, 65529, 1441817, 589818, 65529, 1441817, 589818, 65530, 1441817, 589818, 65531, 1441817, 589818, 65532, 1441817, 589818, 65533, 1441817, 589818, 65534, 1441817, 589818, 65535, 1441817, 589818, 0, 1441817, 589818, 1, 1441817, 589818, 2, 1441817, 589818, 3, 1441817, 589818, 4, 1441817, 589818, 5, 1441817, 589819, 5, 1441817, 589820, 5, 1441817, 589821, 5, 1441817, 589822, 5, 1441817, 589823, 5, 1441817, 524288, 5, 1441817, 524289, 5, 1441817, 524290, 5, 1441817, 524291, 5, 1441817, 524292, 5, 1441817, 524292, 4, 1441817, 524292, 3, 1441817, 524292, 2, 1441817, 524292, 1, 1441817, 524292, 0, 1441817, 524292, 65535, 1441817, 524292, 65534, 1441817, 524292, 65533, 1441817, 524292, 65532, 1441817, 524292, 65531, 1441817, 524292, 65530, 1441817, 524291, 65530, 1441817, 524290, 65530, 1441817, 524289, 65530, 1441817, 524288, 65530, 1441817, 589823, 65530, 1441817, 589822, 65530, 1441817, 589821, 65530, 1441817, 589820, 65530, 1441817, 589819, 65530, 1441817, 589819, 65531, 1441817, 589819, 65532, 1441817, 589819, 65533, 1441817, 589819, 65534, 1441817, 589819, 65535, 1441817, 589819, 0, 1441817, 589819, 1, 1441817, 589819, 2, 1441817, 589819, 3, 1441817, 589819, 4, 1441817, 589820, 4, 1441817, 589821, 4, 1441817, 589822, 4, 1441817, 589823, 4, 1441817, 524288, 4, 1441817, 524289, 4, 1441817, 524290, 4, 1441817, 524291, 4, 1441817, 524291, 3, 1441817, 524291, 2, 1441817, 524291, 1, 1441817, 524291, 0, 1441817, 524291, 65535, 1441817, 524291, 65534, 1441817, 524291, 65533, 1441817, 524291, 65532, 1441817, 524291, 65531, 1441817, 524290, 65531, 1441817, 524289, 65531, 1441817, 524288, 65531, 1441817, 589823, 65531, 1441817, 589822, 65531, 1441817, 589821, 65531, 1441817, 589820, 65531, 1441817, 589820, 65532, 1441817, 589820, 65533, 1441817, 589820, 65534, 1441817, 589820, 65535, 1441817, 589820, 0, 1441817, 589820, 1, 1441817, 589820, 2, 1441817, 589820, 3, 1441817, 589821, 3, 1441817, 589822, 3, 1441817, 589823, 3, 1441817, 524288, 3, 1441817, 524289, 3, 1441817, 524290, 3, 1441817, 524290, 2, 1441817, 524290, 0, 1441817, 524290, 65535, 1441817, 524290, 65534, 1441817, 524290, 65533, 1441817, 524290, 65532, 1441817, 524289, 65532, 1441817, 524288, 65532, 1441817, 589823, 65532, 1441817, 589822, 65532, 1441817, 589821, 65532, 1441817, 589821, 65533, 1441817, 589821, 65534, 1441817, 589821, 65535, 1441817, 589821, 0, 1441817, 589821, 1, 1441817, 589821, 2, 1441817, 524288, 65533, 1441817, 589823, 65533, 1441817, 589822, 65533, 1441817, 524289, 65533, 1441817, 589822, 2, 1441817, 589823, 2, 1441817, 524288, 2, 1441817, 524289, 2, 1441817, 524290, 1, 1441817, 851967, 65532, 1245185, 786432, 65532, 1245185, 851966, 65532, 1376257, 851965, 65532, 1376257, 851965, 65533, 1376257, 851965, 65534, 1376257, 851965, 65535, 1376257, 720901, 7, 655361, 851974, 6, 851969, 851974, 5, 851969, 851973, 5, 786433, 720900, 6, 983041, 720900, 7, 983041, 786432, 65533, 1245185, 851967, 65533, 1245185, 851966, 65533, 1376257, 1245171, 7, 1441805, 1245172, 7, 1441805, 1245173, 7, 1441805, 1245174, 7, 1441805, 1245175, 7, 1441805, 1245175, 8, 1441805, 1245175, 9, 1441805, 1245175, 10, 1441805, 1245175, 11, 1441805, 1245174, 11, 1441805, 1245173, 11, 1441805, 1245172, 11, 1441805, 1245171, 11, 1441805, 1245171, 10, 1441805, 1245171, 9, 1441805, 1245171, 8, 1441805, 1245172, 8, 1441805, 1245173, 8, 1441805, 1245174, 8, 1441805, 1245174, 9, 1441805, 1245174, 10, 1441805, 1245173, 10, 1441805, 1245172, 10, 1441805, 1245172, 9, 1441805, 1245173, 9, 1441805, 983042, 0, 851969, 983042, 1, 851969, 983041, 2, 851969, 983042, 2, 851969, 983040, 2, 1179649, 1245183, 65533, 262145, 1245182, 65533, 262145, 1245181, 65533, 262145, 1245181, 65534, 458753, 1245181, 65535, 458753, 1245181, 0, 589825, 1245176, 1, 524300, 1179648, 1, 1441803, 1179649, 0, 1441803, 1179649, 1, 1441803, 1245185, 0, 1441815, 1245185, 1, 1441815, 1245184, 1, 1441815, 1310721, 0, 1441815, 1310721, 1, 1441815, 1310720, 1, 1441815, 851973, 6, 1441793)
+}
+metadata/_editor_floor_ = Vector3(0, 13, 0)
+
+[node name="CharacterMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.10891, 10.3513, 1.62856)
+material_override = SubResource("ShaderMaterial_jyhfs")
+mesh = SubResource("QuadMesh_sugp2")
+
+[node name="FEZController" type="SubViewport" parent="CharacterMesh" node_paths=PackedStringArray("grid_building", "grid_body", "character", "mesh_instance", "animated_sprite", "collision_shape", "camera")]
+disable_3d = true
+transparent_bg = true
+size = Vector2i(100, 100)
+script = ExtResource("2_jyhfs")
+grid_building = NodePath("../../Buildings")
+grid_body = NodePath("../../Platform")
+character = NodePath("CharacterBody2D")
+mesh_instance = NodePath("..")
+animated_sprite = NodePath("AnimatedSprite2D")
+collision_shape = NodePath("CharacterBody2D/CollisionShape2D")
+camera = NodePath("../../Camera3D")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterMesh/FEZController"]
+texture_filter = 1
+position = Vector2(50, 25)
+scale = Vector2(10, 10)
+sprite_frames = SubResource("SpriteFrames_85g3d")
+animation = &"RUN"
+autoplay = "IDLE"
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="CharacterMesh/FEZController"]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterMesh/FEZController/CharacterBody2D"]
+shape = SubResource("RectangleShape2D_h2yge")

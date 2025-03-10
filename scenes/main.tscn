@@ -1,0 +1,364 @@
+[gd_scene load_steps=26 format=3 uid="uid://bi1ruv5c6mhjn"]
+
+[ext_resource type="Script" uid="uid://dscb6l7gvxvp4" path="res://scripts/fez_controller.gd" id="2_jyhfs"]
+[ext_resource type="MeshLibrary" uid="uid://dqnexy4fervp" path="res://meshes/cube_world_library.tres" id="2_tefeu"]
+[ext_resource type="Texture2D" uid="uid://coyut461emefx" path="res://sprites/IDLE.png" id="4_jyhfs"]
+[ext_resource type="Texture2D" uid="uid://cfedd3agsmx7m" path="res://sprites/JUMP.png" id="4_tbgi4"]
+[ext_resource type="Texture2D" uid="uid://btjsryqehjhck" path="res://sprites/RUN.png" id="5_tefeu"]
+
+[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_tbgi4"]
+energy_multiplier = 3.0
+use_debanding = false
+
+[sub_resource type="Sky" id="Sky_tefeu"]
+sky_material = SubResource("PhysicalSkyMaterial_tbgi4")
+
+[sub_resource type="Environment" id="Environment_o6xl0"]
+background_mode = 1
+background_color = Color(0.27269, 0.527739, 0.623847, 1)
+sky = SubResource("Sky_tefeu")
+ambient_light_source = 3
+ambient_light_color = Color(0.537255, 0.364706, 0.278431, 1)
+ambient_light_sky_contribution = 0.85
+reflected_light_source = 2
+tonemap_mode = 3
+tonemap_white = 6.0
+ssil_enabled = true
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_tipki"]
+
+[sub_resource type="Shader" id="Shader_tbgi4"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.4.stable's StandardMaterial3D.
+
+shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_back, depth_test_disabled, diffuse_burley, specular_schlick_ggx;
+
+uniform vec4 albedo : source_color;
+uniform sampler2D texture_albedo : source_color, filter_linear_mipmap, repeat_enable;
+uniform ivec2 albedo_texture_size;
+uniform float point_size : hint_range(0.1, 128.0, 0.1);
+
+uniform float roughness : hint_range(0.0, 1.0);
+uniform sampler2D texture_metallic : hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform vec4 metallic_texture_channel;
+uniform sampler2D texture_roughness : hint_roughness_r, filter_linear_mipmap, repeat_enable;
+
+uniform float specular : hint_range(0.0, 1.0, 0.01);
+uniform float metallic : hint_range(0.0, 1.0, 0.01);
+
+uniform vec3 uv1_scale;
+uniform vec3 uv1_offset;
+uniform vec3 uv2_scale;
+uniform vec3 uv2_offset;
+
+uniform sampler2D depth_texture: hint_depth_texture;
+
+void vertex() {
+	UV = UV * uv1_scale.xy + uv1_offset.xy;
+
+	// Billboard Mode: Enabled
+	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(
+			MAIN_CAM_INV_VIEW_MATRIX[0],
+			MAIN_CAM_INV_VIEW_MATRIX[1],
+			MAIN_CAM_INV_VIEW_MATRIX[2],
+			MODEL_MATRIX[3]);
+	MODELVIEW_NORMAL_MATRIX = mat3(MODELVIEW_MATRIX);
+}
+
+void fragment() {
+	vec2 base_uv = UV;
+
+	vec4 albedo_tex = texture(texture_albedo, base_uv);
+	ALBEDO = albedo.rgb * albedo_tex.rgb;
+
+	float metallic_tex = dot(texture(texture_metallic, base_uv), metallic_texture_channel);
+	METALLIC = metallic_tex * metallic;
+	SPECULAR = specular;
+
+	vec4 roughness_texture_channel = vec4(1.0, 0.0, 0.0, 0.0);
+	float roughness_tex = dot(texture(texture_roughness, base_uv), roughness_texture_channel);
+	ROUGHNESS = roughness_tex * roughness;
+	ALPHA *= albedo.a * albedo_tex.a;
+
+	float depth = texture(depth_texture, SCREEN_UV).x;
+	vec3 ndc = vec3(SCREEN_UV * 2.0 - 1.0, depth);
+	vec4 view = INV_PROJECTION_MATRIX * vec4(ndc, 1.0);
+	view.xyz /= view.w;
+	float linear_depth = -view.z;
+
+
+	if (-VERTEX.z > linear_depth)
+	{
+		ALBEDO = vec3(0.3, 0.3, 0.3);
+	}
+}
+"
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_tbgi4"]
+viewport_path = NodePath("CharacterMesh/FEZController")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tefeu"]
+resource_local_to_scene = true
+render_priority = 0
+shader = SubResource("Shader_tbgi4")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/texture_albedo = SubResource("ViewportTexture_tbgi4")
+shader_parameter/albedo_texture_size = Vector2i(0, 0)
+shader_parameter/point_size = 1.0
+shader_parameter/roughness = 1.0
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+
+[sub_resource type="QuadMesh" id="QuadMesh_sugp2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jyhfs"]
+atlas = ExtResource("4_jyhfs")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tbgi4"]
+atlas = ExtResource("4_jyhfs")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tefeu"]
+atlas = ExtResource("4_jyhfs")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o6xl0"]
+atlas = ExtResource("4_jyhfs")
+region = Rect2(48, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tipki"]
+atlas = ExtResource("4_jyhfs")
+region = Rect2(64, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_85g3d"]
+atlas = ExtResource("4_tbgi4")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_choun"]
+atlas = ExtResource("5_tefeu")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ya4ey"]
+atlas = ExtResource("5_tefeu")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eb6dy"]
+atlas = ExtResource("5_tefeu")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_85g3d"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jyhfs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tbgi4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tefeu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o6xl0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tipki")
+}],
+"loop": true,
+"name": &"IDLE",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_85g3d")
+}],
+"loop": true,
+"name": &"JUMP",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_choun")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ya4ey")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eb6dy")
+}],
+"loop": true,
+"name": &"RUN",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_h2yge"]
+size = Vector2(50, 50)
+
+[sub_resource type="GDScript" id="GDScript_tbgi4"]
+script/source = "extends CanvasLayer
+
+@export var debug_orthogonal_camera: Camera3D
+@export var debug_perspective_camera: Camera3D
+@export var debug_draw_viewport: SubViewport
+@export var controller: FEZController
+
+var depth: float = 10
+func _process(delta):
+	if not visible:
+		return
+
+	depth = clamp(depth + Input.get_axis(\"debug_view_close\", \"debug_view_away\") * delta * 15, 0, 50)
+
+	for world in controller.worlds:
+		debug_draw(world, controller.character.global_position, depth, world == controller.world_current)
+	#debug_draw(controller.world_current, controller.character.global_position, depth, true)
+	
+	debug_orthogonal_camera.global_transform = controller.camera.global_transform
+	debug_perspective_camera.global_transform = controller.camera.global_transform.translated_local(Vector3.FORWARD * 5)
+
+func debug_draw(world: DirectionWorldData, pos:Vector2, depth: float, active: bool):
+	for xy_key in world.body_depth_map:
+		if world.building_depth_map.get(xy_key, INF) < world.body_depth_map[xy_key]:
+			continue
+		
+		var local = Utility.v3(world.grid_to_local(xy_key), -depth)
+		var extend = abs(Utility.v2(world.grid_local_size)) / 2.0
+		var _s = DebugDraw3D.new_scoped_config()
+		_s.set_thickness(0)
+		_s.set_center_brightness(0.1)
+		_s.set_hd_sphere(true)
+		_s.set_viewport(debug_draw_viewport.get_viewport())
+		Utility.debug_draw_polyline([
+			world.to_global(local + Vector3(-extend.x, -extend.y, 0)),
+			world.to_global(local + Vector3( extend.x, -extend.y, 0)),
+			world.to_global(local + Vector3( extend.x,  extend.y, 0)),
+			world.to_global(local + Vector3(-extend.x,  extend.y, 0)),
+		], Color.GREEN if active else Color.WHITE)
+		
+		if active:
+			var character_pos = Utility.v3(pos, -depth)
+			Utility.debug_draw_polyline([
+				world.to_global(character_pos + Vector3(-extend.x, -extend.y, 0)),
+				world.to_global(character_pos + Vector3( extend.x, -extend.y, 0)),
+				world.to_global(character_pos + Vector3( extend.x,  extend.y, 0)),
+				world.to_global(character_pos + Vector3(-extend.x,  extend.y, 0)),
+			], Color.RED)
+	
+"
+
+[node name="Node3D" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_o6xl0")
+camera_attributes = SubResource("CameraAttributesPractical_tipki")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.221821, 0.975087, 0, -0.975087, 0.221821, 1.45439, 15.2223, 24.4563)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.45439, 6.19436, 24.4563)
+visible = false
+projection = 1
+size = 20.0
+
+[node name="Building" type="GridMap" parent="."]
+mesh_library = ExtResource("2_tefeu")
+cell_size = Vector3(1, 1, 1)
+data = {
+"cells": PackedInt32Array(65535, 65535, 851969, 65535, 0, 851969, 0, 0, 851969, 0, 65535, 851969, 65534, 65534, 851969, 65534, 65535, 851969, 65534, 0, 851969, 65534, 1, 851969, 65535, 1, 851969, 0, 1, 851969, 1, 1, 851969, 1, 0, 851969, 1, 65535, 851969, 1, 65534, 851969, 0, 65534, 851969, 65535, 65534, 851969, 131070, 65534, 851969, 131071, 65534, 851969, 65536, 65534, 851969, 65537, 65534, 851969, 65537, 65535, 851969, 65537, 0, 851969, 65537, 1, 851969, 65536, 1, 851969, 65536, 0, 851969, 131071, 0, 851969, 65536, 65535, 851969, 131071, 65535, 851969, 131070, 65535, 851969, 131070, 0, 851969, 131070, 1, 851969, 131071, 1, 851969, 196606, 65534, 851969, 196607, 65534, 851969, 131072, 65534, 851969, 131073, 65534, 851969, 131073, 65535, 851969, 131073, 0, 851969, 131073, 1, 851969, 131072, 1, 851969, 131072, 0, 851969, 196607, 0, 851969, 196606, 0, 851969, 196607, 65535, 851969, 131072, 65535, 851969, 196606, 65535, 851969, 196606, 1, 851969, 196607, 1, 851969, 262142, 65534, 851969, 262143, 65534, 851969, 196608, 65534, 851969, 196608, 65535, 851969, 196609, 65535, 851969, 196609, 65534, 851969, 196609, 0, 851969, 196609, 1, 851969, 196608, 1, 851969, 196608, 0, 851969, 262143, 0, 851969, 262143, 65535, 851969, 262142, 65535, 851969, 262142, 0, 851969, 262142, 1, 851969, 262143, 1, 851969, 327678, 65534, 851969, 327679, 65534, 851969, 262144, 65534, 851969, 262144, 65535, 851969, 262145, 65535, 851969, 262145, 0, 851969, 262144, 0, 851969, 262145, 65534, 851969, 262145, 1, 851969, 262144, 1, 851969, 327679, 1, 851969, 327679, 0, 851969, 327678, 0, 851969, 327678, 65535, 851969, 327679, 65535, 851969, 327678, 1, 851969, 393214, 65534, 851969, 393215, 65534, 851969, 393215, 65535, 851969, 327680, 65534, 851969, 327680, 65535, 851969, 327681, 65535, 851969, 327681, 65534, 851969, 327681, 0, 851969, 327681, 1, 851969, 327680, 1, 851969, 327680, 0, 851969, 393215, 0, 851969, 393214, 65535, 851969, 393214, 0, 851969, 393214, 1, 851969, 393215, 1, 851969, 458750, 65534, 851969, 458751, 65534, 851969, 393216, 65534, 851969, 393217, 65534, 851969, 393217, 65535, 851969, 393217, 0, 851969, 393217, 1, 851969, 393216, 1, 851969, 393216, 0, 851969, 458751, 0, 851969, 393216, 65535, 851969, 458751, 65535, 851969, 458750, 0, 851969, 458750, 65535, 851969, 458750, 1, 851969, 458751, 1, 851969, 524286, 65534, 851969, 524287, 65534, 851969, 458752, 65534, 851969, 458753, 65534, 851969, 458753, 65535, 851969, 458753, 0, 851969, 458752, 1, 851969, 458753, 1, 851969, 458752, 0, 851969, 458752, 65535, 851969, 524287, 65535, 851969, 524287, 0, 851969, 524287, 1, 851969, 524286, 0, 851969, 524286, 65535, 851969, 524286, 1, 851969)
+}
+metadata/_editor_floor_ = Vector3(0, 9, 0)
+
+[node name="Platform" type="GridMap" parent="."]
+mesh_library = ExtResource("2_tefeu")
+cell_size = Vector3(1, 1, 1)
+data = {
+"cells": PackedInt32Array(65533, 65534, 851968, 65533, 65535, 851968, 65533, 0, 851968, 65533, 1, 851968, 65533, 2, 851968, 65534, 2, 851968, 1, 2, 851968, 0, 2, 851968, 65535, 2, 851968, 65533, 3, 851968, 65534, 3, 851968, 65535, 3, 851968, 0, 3, 851968, 1, 3, 851968, 65533, 4, 851968, 65534, 4, 851968, 65535, 4, 851968, 0, 4, 851968, 1, 4, 851968, 2, 4, 786432, 2, 3, 786432, 2, 2, 786432, 2, 1, 786432, 2, 0, 786432, 2, 65535, 786432, 2, 65534, 786432, 2, 65533, 983040, 1, 65533, 983040, 0, 65533, 983040, 65535, 65533, 983040, 65534, 65533, 983040, 65533, 65533, 983040, 196607, 2, 1310720, 131072, 1, 1310720, 131072, 2, 1310720, 262146, 0, 1507328, 262146, 65535, 1507328, 393216, 65533, 1441792, 458751, 65533, 1441792, 589821, 65535, 1376256, 589821, 0, 1376256, 524289, 1, 0, 524288, 1, 0, 589823, 1, 0, 589822, 1, 0, 589822, 0, 0, 589822, 65535, 0, 589822, 65534, 0, 589823, 65534, 0, 524288, 65534, 0, 524288, 65535, 0, 524289, 65535, 0, 524289, 0, 0, 524288, 0, 0, 589823, 0, 0, 589823, 65535, 0, 524289, 65534, 0)
+}
+metadata/_editor_floor_ = Vector3(0, 8, 0)
+
+[node name="CharacterMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.54985, 1.92986, 3.45743)
+material_override = SubResource("ShaderMaterial_tefeu")
+mesh = SubResource("QuadMesh_sugp2")
+
+[node name="FEZController" type="SubViewport" parent="CharacterMesh" node_paths=PackedStringArray("grid_building", "grid_body", "character", "mesh_instance", "animated_sprite", "collision_shape", "camera")]
+disable_3d = true
+transparent_bg = true
+size = Vector2i(100, 100)
+script = ExtResource("2_jyhfs")
+grid_building = NodePath("../../Building")
+grid_body = NodePath("../../Platform")
+character = NodePath("CharacterBody2D")
+mesh_instance = NodePath("..")
+animated_sprite = NodePath("AnimatedSprite2D")
+collision_shape = NodePath("CharacterBody2D/CollisionShape2D")
+camera = NodePath("../../Camera3D")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterMesh/FEZController"]
+texture_filter = 1
+position = Vector2(50, 25)
+scale = Vector2(10, 10)
+sprite_frames = SubResource("SpriteFrames_85g3d")
+animation = &"RUN"
+autoplay = "IDLE"
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="CharacterMesh/FEZController"]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterMesh/FEZController/CharacterBody2D"]
+shape = SubResource("RectangleShape2D_h2yge")
+
+[node name="DebugView" type="CanvasLayer" parent="." node_paths=PackedStringArray("debug_orthogonal_camera", "debug_perspective_camera", "debug_draw_viewport", "controller")]
+visible = false
+script = SubResource("GDScript_tbgi4")
+debug_orthogonal_camera = NodePath("ColorRect/SubViewportContainer/SubViewport/Camera3D")
+debug_perspective_camera = NodePath("SubViewportContainer/SubViewport/HelpCamera")
+debug_draw_viewport = NodePath("SubViewportContainer/SubViewport")
+controller = NodePath("../CharacterMesh/FEZController")
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="DebugView"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="SubViewport" type="SubViewport" parent="DebugView/SubViewportContainer"]
+handle_input_locally = false
+size = Vector2i(1280, 720)
+render_target_update_mode = 0
+
+[node name="HelpCamera" type="Camera3D" parent="DebugView/SubViewportContainer/SubViewport"]
+transform = Transform3D(0.858414, -0.158913, 0.487721, 1.49012e-08, 0.950803, 0.309797, -0.512957, -0.265934, 0.816183, 7.57861, 17.1921, 15.164)
+current = true
+
+[node name="ColorRect" type="ColorRect" parent="DebugView"]
+custom_minimum_size = Vector2(390, 280)
+offset_right = 300.0
+offset_bottom = 174.0
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="DebugView/ColorRect"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.903
+anchor_bottom = 0.857
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 19.83
+offset_bottom = 20.04
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SubViewport" type="SubViewport" parent="DebugView/ColorRect/SubViewportContainer"]
+handle_input_locally = false
+size = Vector2i(350, 240)
+render_target_update_mode = 0
+
+[node name="Camera3D" type="Camera3D" parent="DebugView/ColorRect/SubViewportContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.45439, 15.2223, 24.4563)
+projection = 1
+size = 20.0
